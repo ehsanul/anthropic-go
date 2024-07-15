@@ -61,6 +61,25 @@ type ImageContentBlock struct {
 
 func (i ImageContentBlock) isContentBlock() {}
 
+// ToolUseContentBlock represents a block that calls a tool.
+type ToolUseContentBlock struct {
+	Type   string      `json:"type"`
+	ID     string      `json:"id"`
+	Name   string      `json:"name"`
+	Input  interface{} `json:"input"`
+}
+
+func (i ToolUseContentBlock) isContentBlock() {}
+
+func NewToolUseContentBlock(id, name string, input interface{}) ContentBlock {
+	return ToolUseContentBlock{
+		Type: "tool_use",
+		ID: id,
+		Name: name,
+		Input: input,
+	}
+}
+
 // MessagePartRequest is updated to support both text and image content blocks.
 type MessagePartRequest struct {
 	Role    string         `json:"role"`
@@ -74,6 +93,7 @@ func NewTextContentBlock(text string) ContentBlock {
 		Text: text,
 	}
 }
+
 
 type MediaType string
 
