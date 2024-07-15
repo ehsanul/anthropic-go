@@ -4,7 +4,7 @@ package native
 import (
 	"net/http"
 
-	"github.com/madebywelch/anthropic-go/v3/pkg/anthropic"
+	"github.com/ehsanul/anthropic-go/v3/pkg/anthropic"
 )
 
 const (
