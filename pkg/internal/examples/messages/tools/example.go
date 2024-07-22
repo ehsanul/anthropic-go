@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/ehsanul/anthropic-go/v3/pkg/anthropic"
 	"github.com/ehsanul/anthropic-go/v3/pkg/anthropic/client/native"
@@ -23,8 +25,13 @@ func main() {
 
 	// Prepare a message request
 	request := &anthropic.MessageRequest{
-		Model:             anthropic.Claude3Opus,
+		Model:             anthropic.Claude35Sonnet,
 		MaxTokensToSample: 1024,
+		ToolChoice: &anthropic.ToolChoice{
+			// force the use of the tool
+			Type: "tool",
+			Name: "get_weather",
+		},
 		Tools: []anthropic.Tool{
 			{
 				Name:        "get_weather",
@@ -49,6 +56,11 @@ func main() {
 	}
 
 	if response.StopReason == "tool_use" {
-		// Do something with the tool response
+		// Do something with the tool use response
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Tool use response: %s\n", responseJson)
 	}
 }

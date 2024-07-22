@@ -31,7 +31,11 @@ type ContentBlockStartEvent struct {
 	Index        int `json:"index"`
 	ContentBlock struct {
 		Type string `json:"type"`
-		Text string `json:"text"`
+		Text string `json:"text,omitempty"`
+
+		/* Optional fields, only present for tools responses */
+		ID   string `json:"id,omitempty"`
+		Name string `json:"name,omitempty"`
 	} `json:"content_block"`
 }
 
@@ -45,6 +49,9 @@ type ContentBlockDeltaEvent struct {
 	Delta struct {
 		Type string `json:"type"`
 		Text string `json:"text"`
+
+		// Optional fields, only present for tools responses
+		PartialJson string `json:"partial_json,omitempty"` // for type = "input_json_delta"
 	} `json:"delta"`
 }
 
@@ -56,6 +63,8 @@ type ContentBlockStopEvent struct {
 type MessageDeltaEvent struct {
 	MessageEvent
 	Delta struct {
+		Type string `json:"type"`
+
 		StopReason   string `json:"stop_reason"`
 		StopSequence string `json:"stop_sequence"`
 	} `json:"delta"`
@@ -95,12 +104,34 @@ func ParseMessageEvent(eventType MessageEventType, event string) (*MessageStream
 		err = json.Unmarshal([]byte(event), &messageStartEvent)
 
 		messageStreamResponse.Type = messageStartEvent.Type
+		messageStreamResponse.Message.ID = messageStartEvent.Message.ID
+		messageStreamResponse.Message.Type = messageStartEvent.Message.Type
+		messageStreamResponse.Message.Role = messageStartEvent.Message.Role
+		messageStreamResponse.Message.Model = messageStartEvent.Message.Model
+		messageStreamResponse.Message.StopReason = messageStartEvent.Message.StopReason
+		messageStreamResponse.Message.StopSequence = messageStartEvent.Message.StopSequence
+		messageStreamResponse.Message.Usage = messageStartEvent.Message.Usage
+		// set on both levels: no reason for these to ever be out of sync
 		messageStreamResponse.Usage = messageStartEvent.Message.Usage
+
 	case MessageEventTypeContentBlockStart:
 		contentBlockEvent := &ContentBlockStartEvent{}
 		err = json.Unmarshal([]byte(event), &contentBlockEvent)
 
 		messageStreamResponse.Type = contentBlockEvent.Type
+		switch contentBlockEvent.ContentBlock.Type {
+		case "text":
+			messageStreamResponse.ContentBlock = TextContentBlock{
+				Type: contentBlockEvent.ContentBlock.Type,
+				Text: contentBlockEvent.ContentBlock.Text,
+			}
+		case "tool_use":
+			messageStreamResponse.ContentBlock = ToolUseContentBlock{
+				Type: contentBlockEvent.ContentBlock.Type,
+				ID:   contentBlockEvent.ContentBlock.Text,
+				Name: contentBlockEvent.ContentBlock.Name,
+			}
+		}
 	case MessageEventTypePing:
 		pingEvent := &PingEvent{}
 		err = json.Unmarshal([]byte(event), &pingEvent)
@@ -113,6 +144,7 @@ func ParseMessageEvent(eventType MessageEventType, event string) (*MessageStream
 		messageStreamResponse.Type = contentBlockEvent.Type
 		messageStreamResponse.Delta.Type = contentBlockEvent.Delta.Type
 		messageStreamResponse.Delta.Text = contentBlockEvent.Delta.Text
+		messageStreamResponse.Delta.PartialJson = contentBlockEvent.Delta.PartialJson
 	case MessageEventTypeContentBlockStop:
 		contentBlockStopEvent := &ContentBlockStopEvent{}
 		err = json.Unmarshal([]byte(event), &contentBlockStopEvent)
@@ -126,6 +158,8 @@ func ParseMessageEvent(eventType MessageEventType, event string) (*MessageStream
 		messageStreamResponse.Delta.StopReason = messageDeltaEvent.Delta.StopReason
 		messageStreamResponse.Delta.StopSequence = messageDeltaEvent.Delta.StopSequence
 		messageStreamResponse.Usage.OutputTokens = messageDeltaEvent.Usage.OutputTokens
+		// set on both levels: no reason for these to ever be out of sync
+		messageStreamResponse.Message.Usage.OutputTokens = messageDeltaEvent.Usage.OutputTokens
 	case MessageEventTypeMessageStop:
 		messageStopEvent := &MessageStopEvent{}
 		err = json.Unmarshal([]byte(event), &messageStopEvent)

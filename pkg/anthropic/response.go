@@ -19,9 +19,11 @@ type StreamResponse struct {
 // MessageResponse is a subset of the response from the Anthropic API for a message response.
 type MessagePartResponse struct {
 	Type string `json:"type"`
-	Text string `json:"text"`
 
-	// Optional fields, only present for tools responses
+	/* for type = "text" */
+	Text string `json:"text,omitempty"`
+
+	/* for type = "tool_use" */
 	ID    string                 `json:"id,omitempty"`
 	Name  string                 `json:"name,omitempty"`
 	Input map[string]interface{} `json:"input,omitempty"`
@@ -46,14 +48,25 @@ type MessageUsage struct {
 }
 
 type MessageStreamResponse struct {
-	Type  string             `json:"type"`
-	Delta MessageStreamDelta `json:"delta"`
-	Usage MessageStreamUsage `json:"usage"`
+	Type         string             `json:"type"`
+	Message      MessageResponse    `json:"message,omitempty"`
+	ContentBlock ContentBlock       `json:"content_block,omitempty"`
+	Delta        MessageStreamDelta `json:"delta,omitempty"`
+	Usage        MessageStreamUsage `json:"usage,omitempty"`
+
+	Index int `json:"index,omitempty"`
 }
 
 type MessageStreamDelta struct {
-	Type         string `json:"type"`
-	Text         string `json:"text"`
+	Type string `json:"type,omitempty"`
+
+	// for delta type = "text_delta"
+	Text string `json:"text,omitempty"`
+
+	// for delta type = "input_json_delta"
+	PartialJson string `json:"partial_json,omitempty"`
+
+	// for chunk/event/MessageStreamResponse type = "message_delta", and delta type = "" (i.e. omitted)
 	StopReason   string `json:"stop_reason"`
 	StopSequence string `json:"stop_sequence"`
 }

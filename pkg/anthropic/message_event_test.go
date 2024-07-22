@@ -20,7 +20,7 @@ func TestParseMessageEvent(t *testing.T) {
 					"id": "123",
 					"type": "text",
 					"role": "user",
-					"content": ["Hello, world!"],
+					"content": [],
 					"model": "claude-v2_1",
 					"stop_reason": "",
 					"stop_sequence": "",
@@ -32,6 +32,16 @@ func TestParseMessageEvent(t *testing.T) {
 			}`,
 			expected: &MessageStreamResponse{
 				Type: "message_start",
+				Message: MessageResponse{
+					ID:    "123",
+					Type:  "text",
+					Role:  "user",
+					Model: "claude-v2_1",
+					Usage: MessageUsage{
+						InputTokens:  10,
+						OutputTokens: 20,
+					},
+				},
 				Usage: MessageStreamUsage{
 					InputTokens:  10,
 					OutputTokens: 20,
@@ -50,6 +60,10 @@ func TestParseMessageEvent(t *testing.T) {
 			}`,
 			expected: &MessageStreamResponse{
 				Type: "content_block_start",
+				ContentBlock: TextContentBlock{
+					Type: "text",
+					Text: "This is a content block",
+				},
 			},
 		},
 		{
@@ -109,6 +123,11 @@ func TestParseMessageEvent(t *testing.T) {
 				},
 				Usage: MessageStreamUsage{
 					OutputTokens: 20,
+				},
+				Message: MessageResponse{
+					Usage: MessageUsage{
+						OutputTokens: 20,
+					},
 				},
 			},
 		},

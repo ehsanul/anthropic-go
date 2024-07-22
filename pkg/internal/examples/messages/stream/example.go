@@ -47,7 +47,6 @@ func main() {
 		case err := <-errCh:
 			fmt.Printf("\n\nError: %s\n\n", err)
 			done = true
-			break
 		}
 		if chunk.Type == "message_stop" || done {
 			break
@@ -55,6 +54,7 @@ func main() {
 		time.Sleep(100 * time.Millisecond)
 	}
 
+	fmt.Println()
 	fmt.Println("-------------------FINAL RESULT----------------------")
 	fmt.Println(final.String())
 	fmt.Println("-----------------------------------------------------")

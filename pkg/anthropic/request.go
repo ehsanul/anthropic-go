@@ -32,10 +32,10 @@ func NewCompletionRequest(prompt string, options ...GenericOption[CompletionRequ
 	return request
 }
 
-// ContentBlock interface to allow for both TextContentBlock and ImageContentBlock
+// ContentBlock interface to allow for TextContentBlock, ImageContentBlock,
+// ToolUseContentBlock, and ToolResultContentBlock.
 type ContentBlock interface {
-	// This method exists solely to enforce compile-time checking of the types that implement this interface.
-	isContentBlock()
+	ContentBlockType() string
 }
 
 // TextContentBlock represents a block of text content.
@@ -44,7 +44,7 @@ type TextContentBlock struct {
 	Text string `json:"text"`
 }
 
-func (t TextContentBlock) isContentBlock() {}
+func (t TextContentBlock) ContentBlockType() string { return t.Type }
 
 // ImageSource represents the source of an image, supporting base64 encoding for now.
 type ImageSource struct {
@@ -59,26 +59,27 @@ type ImageContentBlock struct {
 	Source ImageSource `json:"source"`
 }
 
-func (i ImageContentBlock) isContentBlock() {}
+func (i ImageContentBlock) ContentBlockType() string { return i.Type }
 
 // ToolUseContentBlock represents a block that calls a tool.
 type ToolUseContentBlock struct {
-	Type   string      `json:"type"`
-	ID     string      `json:"id"`
-	Name   string      `json:"name"`
-	Input  interface{} `json:"input"`
+	Type  string         `json:"type"`
+	ID    string         `json:"id"`
+	Name  string         `json:"name"`
+	Input map[string]any `json:"input"`
 }
 
-func (i ToolUseContentBlock) isContentBlock() {}
+func (t ToolUseContentBlock) ContentBlockType() string { return t.Type }
 
-func NewToolUseContentBlock(id, name string, input interface{}) ContentBlock {
-	return ToolUseContentBlock{
-		Type: "tool_use",
-		ID: id,
-		Name: name,
-		Input: input,
-	}
+// ToolResultContentBlock represents a block of tool result content.
+type ToolResultContentBlock struct {
+	Type      string      `json:"type"`
+	ToolUseID string      `json:"tool_use_id"`
+	Content   interface{} `json:"content"`
+	IsError   bool        `json:"is_error,omitempty"`
 }
+
+func (t ToolResultContentBlock) ContentBlockType() string { return t.Type }
 
 // MessagePartRequest is updated to support both text and image content blocks.
 type MessagePartRequest struct {
@@ -93,7 +94,6 @@ func NewTextContentBlock(text string) ContentBlock {
 		Text: text,
 	}
 }
-
 
 type MediaType string
 
@@ -115,16 +115,6 @@ func NewImageContentBlock(mediaType MediaType, base64Data string) ContentBlock {
 		},
 	}
 }
-
-// ToolResultContentBlock represents a block of tool result content.
-type ToolResultContentBlock struct {
-	Type      string      `json:"type"`
-	ToolUseID string      `json:"tool_use_id"`
-	Content   interface{} `json:"content"`
-	IsError   bool        `json:"is_error,omitempty"`
-}
-
-func (t ToolResultContentBlock) isContentBlock() {}
 
 // NewToolResultContentBlock creates a new tool result content block with the given parameters.
 func NewToolResultContentBlock(toolUseID string, content interface{}, isError bool) ContentBlock {
