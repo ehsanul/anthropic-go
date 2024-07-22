@@ -28,7 +28,7 @@ func TestMessageWithToolsIntegration(t *testing.T) {
 	}
 
 	request := &anthropic.MessageRequest{
-		Model:             anthropic.Claude3Opus,
+		Model:             anthropic.Claude3Haiku,
 		MaxTokensToSample: 1024,
 		ToolChoice: &anthropic.ToolChoice{
 			Type: "auto",
@@ -74,7 +74,7 @@ func TestMessageWithForcedToolIntegration(t *testing.T) {
 	}
 
 	request := &anthropic.MessageRequest{
-		Model:             anthropic.Claude3Opus,
+		Model:             anthropic.Claude3Haiku,
 		MaxTokensToSample: 1024,
 		ToolChoice: &anthropic.ToolChoice{
 			Type: "tool",
@@ -125,7 +125,7 @@ func TestMessageWithImageIntegration(t *testing.T) {
 	}
 
 	request := &anthropic.MessageRequest{
-		Model:             anthropic.Claude3Opus,
+		Model:             anthropic.Claude3Haiku,
 		MaxTokensToSample: 50,
 		Messages: []anthropic.MessagePartRequest{
 			{
