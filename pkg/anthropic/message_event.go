@@ -127,8 +127,8 @@ func ParseMessageEvent(eventType MessageEventType, event string) (*MessageStream
 			}
 		case "tool_use":
 			messageStreamResponse.ContentBlock = ToolUseContentBlock{
+				ID:   contentBlockEvent.ContentBlock.ID,
 				Type: contentBlockEvent.ContentBlock.Type,
-				ID:   contentBlockEvent.ContentBlock.Text,
 				Name: contentBlockEvent.ContentBlock.Name,
 			}
 		}

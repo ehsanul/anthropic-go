@@ -36,9 +36,9 @@ type MessageResponse struct {
 	Model        string                `json:"model"`
 	Role         string                `json:"role"`
 	Content      []MessagePartResponse `json:"content"`
-	StopReason   string                `json:"stop_reason"`
-	Stop         string                `json:"stop"`
-	StopSequence string                `json:"stop_sequence"`
+	StopReason   string                `json:"stop_reason,omitempty"`
+	Stop         string                `json:"stop,omitempty"`
+	StopSequence string                `json:"stop_sequence,omitempty"`
 	Usage        MessageUsage          `json:"usage"`
 }
 
