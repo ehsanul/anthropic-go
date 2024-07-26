@@ -2,6 +2,7 @@
 package native
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ehsanul/anthropic-go/v3/pkg/anthropic"
@@ -24,8 +25,12 @@ func (c *Client) doRequest(request *http.Request) (*http.Response, error) {
 	}
 
 	if response.StatusCode != http.StatusOK {
-		err = anthropic.MapHTTPStatusCodeToError(response.StatusCode)
-		return nil, err
+		mainErr := anthropic.MapHTTPStatusCodeToError(response.StatusCode)
+		innerErr := anthropic.MapBodyToError(response.Body)
+		if innerErr != nil {
+			return nil, fmt.Errorf("%w: %w", mainErr, innerErr)
+		}
+		return nil, mainErr
 	}
 
 	return response, nil
